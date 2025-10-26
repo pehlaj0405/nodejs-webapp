@@ -1,44 +1,76 @@
-name: Build and Deploy to Azure Web App (Node 20 LTS)
+name: Deploy Node.js app to Azure Web App (Staging & Production)
 
 on:
   push:
     branches:
-      - main  # deploy automatically when pushing to main branch
+      - main  # triggers on push to main branch
 
 jobs:
-  build-and-deploy:
+  # -------------------------------
+  # 🧪 STAGING DEPLOYMENT
+  # -------------------------------
+  deploy-staging:
+    name: Deploy to Staging
     runs-on: ubuntu-latest
-
+    environment:
+      name: staging  # must match your GitHub environment name
     steps:
-      # 1️⃣ Checkout your code from GitHub
-      - name: Checkout code
+      # 1️⃣ Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup Node.js 20 runtime on the runner
+      # 2️⃣ Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # 3️⃣ Install dependencies (same as npm install)
+      # 3️⃣ Install dependencies
       - name: Install dependencies
         run: npm ci
-        # you can use `npm install` instead if you don’t have a package-lock.json
 
-      # 4️⃣ Optional build step — for React/Vue/Next apps, etc.
+      # 4️⃣ Optional build (if needed)
       - name: Build app (optional)
         run: |
-          echo "No build step for this simple Node app"
-          # If you had a React app, you'd use: npm run build
+          echo "No build step needed for basic Node app"
+          # npm run build
 
-      # 5️⃣ Test step (optional, can be skipped)
-      - name: Run tests (optional)
-        run: echo "No tests configured"
-
-      # 6️⃣ Deploy to Azure Web App
-      - name: Deploy to Azure Web App
+      # 5️⃣ Deploy to Azure Web App (Staging)
+      - name: Deploy to Azure Web App - Staging
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'testwebapp26'  # replace with your app's name
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          app-name: 'testwebapp26'  # e.g., myapp-staging
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_STAGING }}
+          package: '.'
+
+  # -------------------------------
+  # 🚀 PRODUCTION DEPLOYMENT (requires approval)
+  # -------------------------------
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    environment:
+      name: production  # must match your GitHub environment name
+    steps:
+      # 1️⃣ Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 3️⃣ Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 4️⃣ Deploy to Azure Web App (Production)
+      - name: Deploy to Azure Web App - Production
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'testwebapp26'  # e.g., myapp-prod
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_PRODUCTION }}
           package: '.'
