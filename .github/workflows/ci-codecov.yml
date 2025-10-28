@@ -1,0 +1,41 @@
+name: CI - Test and Code Coverage
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      # 1️⃣ Checkout Code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 3️⃣ Install Dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 4️⃣ Run Tests with Coverage
+      # Make sure your package.json test script supports --coverage (Jest, Mocha, etc.)
+      - name: Run tests and generate coverage
+        run: npm test -- --coverage
+
+      # 5️⃣ Upload coverage report to Codecov
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          # Only needed if repo is private
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-coverage
+          fail_ci_if_error: true
